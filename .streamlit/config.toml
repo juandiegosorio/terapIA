@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#6B9AC4"  # Stronger blue
+backgroundColor = "#FFFFFF"  # Pure white
+secondaryBackgroundColor = "#EDF2F7"  # Light cool gray
+textColor = "#2D3748"  # Dark slate
+font = "sans serif"
