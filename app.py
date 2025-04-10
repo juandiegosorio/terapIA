@@ -328,32 +328,55 @@ def load_patient_sessions(patient_id):
     patient_session_dir = SESSIONS_DIR / patient_id
     if not patient_session_dir.exists():
         return []
-    
+
     sessions = []
     for session_dir in patient_session_dir.glob("*"):
         if session_dir.is_dir():
             session_data = {}
             metadata_file = session_dir / "metadata.txt"
-            with open(metadata_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-                session_data["date"] = lines[0].replace("Date: ", "").strip()
-                session_data["notes"] = lines[1].replace("Notes: ", "").strip()
-                session_data["id"] = session_dir.name
-                # Check if audio path exists
-                if len(lines) > 2 and lines[2].startswith("Audio: "):
-                    session_data["audio"] = lines[2].replace("Audio: ", "").strip()
-                else:
-                    session_data["audio"] = None
-            
+            lines = []
+            try:
+                with open(metadata_file, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+            except UnicodeDecodeError:
+                try:
+                    with open(metadata_file, "r", encoding="latin-1") as f:
+                        lines = f.readlines()
+                except UnicodeDecodeError:
+                    try:
+                        with open(metadata_file, "r", encoding="windows-1252") as f:
+                            lines = f.readlines()
+                    except UnicodeDecodeError:
+                        try:
+                            with open(metadata_file, "r", errors='ignore') as f: # try ignore errors
+                                lines = f.readlines()
+                        except:
+                            lines = ["Date: Error", "Notes: Error", "Audio: Error"] # if all fails create default error lines.
+
+            if lines:
+                try:
+                    session_data["date"] = lines[0].replace("Date: ", "").strip()
+                    session_data["notes"] = lines[1].replace("Notes: ", "").strip()
+                    if len(lines) > 2 and lines[2].startswith("Audio: "):
+                        session_data["audio"] = lines[2].replace("Audio: ", "").strip()
+                    else:
+                        session_data["audio"] = None
+                except IndexError: # handle index errors if the file is incomplete.
+                    session_data["date"] = "Error"
+                    session_data["notes"] = "Error"
+                    session_data["audio"] = "Error"
+            else:
+                session_data["date"] = "No Date"
+                session_data["notes"] = "No Notes"
+                session_data["audio"] = None
+
             transcript_file = session_dir / "transcript.txt"
             with open(transcript_file, "r") as f:
                 session_data["transcript"] = f.read()
-            
-            # Add session directory path
+
             session_data["session_dir"] = str(session_dir)
-            
             sessions.append(session_data)
-    
+
     return sorted(sessions, key=lambda x: x["date"], reverse=True)
 
 def therapist_interface():
