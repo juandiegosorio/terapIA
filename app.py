@@ -348,10 +348,10 @@ def load_patient_sessions(patient_id):
                             lines = f.readlines()
                     except UnicodeDecodeError:
                         try:
-                            with open(metadata_file, "r", errors='ignore') as f: # try ignore errors
+                            with open(metadata_file, "r", errors='replace') as f:
                                 lines = f.readlines()
                         except:
-                            lines = ["Date: Error", "Notes: Error", "Audio: Error"] # if all fails create default error lines.
+                            lines = ["Date: Error", "Notes: Error", "Audio: Error"]
 
             if lines:
                 try:
@@ -361,7 +361,7 @@ def load_patient_sessions(patient_id):
                         session_data["audio"] = lines[2].replace("Audio: ", "").strip()
                     else:
                         session_data["audio"] = None
-                except IndexError: # handle index errors if the file is incomplete.
+                except IndexError:
                     session_data["date"] = "Error"
                     session_data["notes"] = "Error"
                     session_data["audio"] = "Error"
@@ -371,8 +371,11 @@ def load_patient_sessions(patient_id):
                 session_data["audio"] = None
 
             transcript_file = session_dir / "transcript.txt"
-            with open(transcript_file, "r") as f:
-                session_data["transcript"] = f.read()
+            try:
+                with open(transcript_file, "r", errors='replace') as f: # force the use of replace.
+                    session_data["transcript"] = f.read()
+            except:
+                session_data["transcript"] = "Error reading transcript"
 
             session_data["session_dir"] = str(session_dir)
             sessions.append(session_data)
