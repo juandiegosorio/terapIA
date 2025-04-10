@@ -1,7 +1,7 @@
 import streamlit as st
 # Must be the first Streamlit command
 st.set_page_config(
-    page_title="Therapy Session Manager",
+    page_title="Gestor de Sesiones de Terapia",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -11,6 +11,20 @@ st.set_page_config(
         'About': None
     }
 )
+
+# Add Font Awesome CSS
+st.markdown("""
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .icon {
+            margin-right: 8px;
+            color: #1A365D;
+        }
+        .nav-icon {
+            margin-right: 8px;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 import datetime
 from pathlib import Path
@@ -383,35 +397,35 @@ def load_patient_sessions(patient_id):
     return sorted(sessions, key=lambda x: x["date"], reverse=True)
 
 def therapist_interface():
-    st.markdown('<h1 class="section-title">🧑‍⚕️ Therapist Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="section-title"><i class="fas fa-user-md icon"></i>Panel del Terapeuta</h1>', unsafe_allow_html=True)
     
     # Patient management section
     patients = get_all_patients()
     if patients:
-        patient_list = "\n".join([f"ID: {p[0]} - Name: {p[1]}" for p in patients])
-        st.text_area("📋 Patient List", patient_list, height=100, disabled=True)
+        patient_list = "\n".join([f"ID: {p[0]} - Nombre: {p[1]}" for p in patients])
+        st.text_area('Lista de Pacientes', patient_list, height=100, disabled=True)
     else:
-        st.info("No patients registered yet")
+        st.info("No hay pacientes registrados aún")
     
-    with st.expander("➕ Add New Patient"):
-        new_patient_name = st.text_input("Patient Name", placeholder="Full Name")
+    with st.expander('Agregar Nuevo Paciente'):
+        new_patient_name = st.text_input("Nombre del Paciente", placeholder="Nombre Completo")
         
-        if st.button("Add Patient", use_container_width=True):
+        if st.button("Agregar Paciente", use_container_width=True):
             if new_patient_name:
                 if save_patient(new_patient_name):
-                    st.success(f"Patient {new_patient_name} added successfully!")
+                    st.success(f"¡Paciente {new_patient_name} agregado exitosamente!")
                 else:
-                    st.error("Failed to add patient!")
+                    st.error("¡Error al agregar paciente!")
             else:
-                st.warning("Please enter the patient's name")
+                st.warning("Por favor ingrese el nombre del paciente")
 
     st.markdown("---")
-    st.markdown('<h2 class="section-title">Create New Session</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="section-title"><i class="fas fa-calendar-plus icon"></i>Crear Nueva Sesión</h2>', unsafe_allow_html=True)
     
     # Get all patients for the selector
     patients = get_all_patients()
     if not patients:
-        st.warning("No patients registered yet. Please add a patient first.")
+        st.warning("No hay pacientes registrados. Por favor agregue un paciente primero.")
     else:
         # If we have a selected patient from search, use that as default
         default_idx = 0
@@ -421,30 +435,30 @@ def therapist_interface():
                     default_idx = idx + 1  # +1 because of the "Select a patient" option
                     break
         
-        patient_options = ["Select a patient"] + [f"{p[1]} (ID: {p[0]})" for p in patients]
-        selected_patient = st.selectbox("Patient", patient_options, index=default_idx)
+        patient_options = ["Seleccionar un paciente"] + [f"{p[1]} (ID: {p[0]})" for p in patients]
+        selected_patient = st.selectbox("Paciente", patient_options, index=default_idx)
         
-        if selected_patient == "Select a patient":
-            st.warning("Please select a patient")
+        if selected_patient == "Seleccionar un paciente":
+            st.warning("Por favor seleccione un paciente")
         else:
             # Session Content
-            session_notes = st.text_area("Session Notes", placeholder="Enter session notes here...", height=150, key="session_notes")
+            session_notes = st.text_area("Notas de la Sesión", placeholder="Ingrese las notas de la sesión aquí...", height=150, key="session_notes")
 
-            input_option = st.radio("How do you want to add the audio?", options=["Upload a file", "Record audio now"], index=1)
+            input_option = st.radio("¿Cómo desea agregar el audio?", options=["Subir un archivo", "Grabar audio ahora"], index=1)
             
             uploaded_file = None
 
-            if input_option == "Record audio now":
-                uploaded_file = st.audio_input("Press the button to record", key="audio_input")
-            elif input_option == "Upload a file":
-                uploaded_file = st.file_uploader("Upload an audio file", type=["wav", "mp3", "ogg", "wma", "aac", "flac", "mp4", "flv"], key="file_uploader")
+            if input_option == "Grabar audio ahora":
+                uploaded_file = st.audio_input("Presione el botón para grabar", key="audio_input")
+            elif input_option == "Subir un archivo":
+                uploaded_file = st.file_uploader("Subir un archivo de audio", type=["wav", "mp3", "ogg", "wma", "aac", "flac", "mp4", "flv"], key="file_uploader")
 
-            if uploaded_file and input_option == "Upload a file":
+            if uploaded_file and input_option == "Subir un archivo":
                 file_path = os.path.join(UPLOAD_DIR, uploaded_file.name)
                 with open(file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 
-                st.success(f"File uploaded: {uploaded_file.name}")
+                st.success(f"Archivo subido: {uploaded_file.name}")
                 
                 col1, col2 = st.columns(2)
                 with col1:
@@ -452,37 +466,37 @@ def therapist_interface():
                 
                 with col2:
                     available_models = whisper.available_models()
-                    model_name = st.selectbox("Choose a Whisper model", available_models, index=available_models.index("base"))
+                    model_name = st.selectbox("Elija un modelo de Whisper", available_models, index=available_models.index("base"))
                 
-                if st.button("Generate Transcript"):
-                    with st.spinner("Transcribing..."):
+                if st.button("Generar Transcripción"):
+                    with st.spinner("Transcribiendo..."):
                         transcript_text = transcribe_audio(file_path, model_name)
-                        st.text_area("Transcript", transcript_text, height=300)
-                        st.download_button("Download Transcript", transcript_text, file_name=uploaded_file.name + ".txt", mime="text/plain")
-                        st.success("Transcription complete!")
+                        st.text_area("Transcripción", transcript_text, height=300)
+                        st.download_button("Descargar Transcripción", transcript_text, file_name=uploaded_file.name + ".txt", mime="text/plain")
+                        st.success("¡Transcripción completada!")
                         
                         # Store transcript and audio in session state
                         st.session_state.current_transcript = transcript_text
                         st.session_state.current_audio = uploaded_file
             
-            elif uploaded_file and input_option == "Record audio now":
-                st.success("Recording complete!")
+            elif uploaded_file and input_option == "Grabar audio ahora":
+                st.success("¡Grabación completada!")
                 st.audio(uploaded_file)
                 
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.write("Recording saved to file")
+                    st.write("Grabación guardada en archivo")
                 
                 with col2:
                     available_models = whisper.available_models()
-                    model_name = st.selectbox("Choose a Whisper model", available_models, index=available_models.index("base"))
+                    model_name = st.selectbox("Elija un modelo de Whisper", available_models, index=available_models.index("base"))
                 
-                if st.button("Generate Transcript"):
-                    with st.spinner("Transcribing..."):
+                if st.button("Generar Transcripción"):
+                    with st.spinner("Transcribiendo..."):
                         transcript_text = transcribe_audio(uploaded_file, model_name)
-                        st.text_area("Transcript", transcript_text, height=300)
-                        st.download_button("Download Transcript", transcript_text, file_name="recording.txt", mime="text/plain")
-                        st.success("Transcription complete!")
+                        st.text_area("Transcripción", transcript_text, height=300)
+                        st.download_button("Descargar Transcripción", transcript_text, file_name="grabacion.txt", mime="text/plain")
+                        st.success("¡Transcripción completada!")
                         
                         # Store transcript and audio in session state
                         st.session_state.current_transcript = transcript_text
@@ -490,7 +504,7 @@ def therapist_interface():
             
             # Save button
             if 'current_transcript' in st.session_state and st.session_state.current_transcript:
-                if st.button("Save Session", use_container_width=True):
+                if st.button("Guardar Sesión", use_container_width=True):
                     # Extract patient ID from selection
                     patient_id = selected_patient.split("(ID: ")[1].rstrip(")")
                     patient_name = selected_patient.split(" (ID:")[0]
@@ -501,34 +515,34 @@ def therapist_interface():
                     }
                     
                     if save_session(patient_id, session_data, st.session_state.current_transcript, st.session_state.current_audio):
-                        st.success("Session saved successfully!")
+                        st.success("¡Sesión guardada exitosamente!")
                         # Clear only the transcript and audio state
                         st.session_state.current_transcript = None
                         st.session_state.current_audio = None
                     else:
-                        st.error("Failed to save session. Please try again.")
+                        st.error("Error al guardar la sesión. Por favor intente nuevamente.")
 
     st.markdown("---")
-    st.markdown('<h1 class="section-title">🔍 Search for Patient</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="section-title"><i class="fas fa-search icon"></i>Buscar Paciente</h1>', unsafe_allow_html=True)
 
-    patient_name = st.text_input("Enter Patient Name", placeholder="Enter existing patient Name")
+    patient_name = st.text_input("Ingrese el Nombre del Paciente", placeholder="Ingrese el nombre del paciente existente")
     
     if patient_name:
         patient = get_patient(patient_name)
         if patient:
-            st.write(f"📝 Patient Name: {patient[1]}")
+            st.write(f'<i class="fas fa-user icon"></i>Nombre del Paciente: {patient[1]}', unsafe_allow_html=True)
             
             # Set the selected patient in session state
             st.session_state.selected_patient = patient
             
             # Display previous sessions
-            st.markdown("### Previous Sessions")
+            st.markdown("### Sesiones Anteriores")
             sessions = load_patient_sessions(patient[0])
             for session in sessions:
-                with st.expander(f"📅 Session from {session['date']}", expanded=False):
-                    st.markdown("**📝 Notes:**")
+                with st.expander(f'Sesión del {session["date"]}', expanded=False):
+                    st.markdown("**Notas:**")
                     st.write(session["notes"])
-                    st.markdown("**📝 Transcript:**")
+                    st.markdown("**Transcripción:**")
                     st.write(session["transcript"])
                     
                     # Check for audio file
@@ -536,91 +550,131 @@ def therapist_interface():
                     if audio_path:
                         audio_file = Path(session["session_dir"]) / audio_path
                         if audio_file.exists():
-                            st.markdown("**🔊 Audio Recording:**")
+                            st.markdown("**Grabación de Audio:**")
                             st.audio(str(audio_file))
                         else:
-                            st.warning("Audio file not found")
+                            st.warning("Archivo de audio no encontrado")
         else:
-            st.error("❌ Patient ID not found!")
+            st.error("❌ ¡Paciente no encontrado!")
 
 def patient_interface():
-    st.markdown('<h1 class="section-title">👤 Patient Portal</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="section-title"><i class="fas fa-user icon"></i>Portal del Paciente</h1>', unsafe_allow_html=True)
     
-    patient_id = st.text_input("Enter your Patient ID", placeholder="Enter your ID")
+    patient_id = st.text_input("Ingrese su Nombre", placeholder="Ingrese su Nombre")
     
     if patient_id:
         patient = get_patient(patient_id)
         if patient:
-            st.write(f"👋 Welcome, {patient[1]}!")
-            sessions = load_patient_sessions(patient[0]	)
+            st.write(f'<i class="fas fa-hand-sparkles icon"></i>¡Bienvenido, {patient[1]}!', unsafe_allow_html=True)
+            sessions = load_patient_sessions(patient[0])
             if sessions:
                 for session in sessions:
-                    with st.expander(f"📅 Session from {session['date']}"):
-                        st.markdown("**Notes:**")
+                    with st.expander(f'Sesión del {session["date"]}'):
+                        st.markdown("**Notas:**")
                         st.write(session["notes"])
-                        st.markdown("**Transcript:**")
+                        st.markdown("**Transcripción:**")
                         st.write(session["transcript"])
                         if session.get("audio"):
                             try:
                                 uploaded_file = Path(session["session_dir"]) / session["audio"]
                                 if uploaded_file.exists():
-                                    st.markdown("**Audio Recording:**")
+                                    st.markdown("**Grabación de Audio:**")
                                     st.audio(str(uploaded_file))
                             except Exception:
-                                st.warning("Audio file not found")
+                                st.warning("Archivo de audio no encontrado")
             else:
-                st.info("📭 No sessions found")
+                st.info("📭 No se encontraron sesiones")
         else:
-            st.error("❌ Patient ID not found!")
+            st.error("❌ ¡ID de paciente no encontrado!")
 
 def homepage():
-    st.markdown('<h1 class="section-title">Welcome to Therapy Session Manager</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="section-title"><i class="fas fa-brain icon"></i>Bienvenido al Gestor de Sesiones de Terapia</h1>', unsafe_allow_html=True)
+    
+    # Add custom CSS for service cards
+    st.markdown("""
+        <style>
+        .service-cards-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .service-card {
+            background-color: #F8FAFC;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .service-card h3 {
+            color: #1A365D;
+            margin-bottom: 15px;
+            min-height: 40px;
+        }
+        .service-card p {
+            color: #2D3748;
+            margin: 0;
+        }
+        .service-icon {
+            font-size: 2em;
+            margin-bottom: 15px;
+            color: #1A365D;
+        }
+        </style>
+    """, unsafe_allow_html=True)
     
     # Service cards
+    st.markdown('<div class="service-cards-container">', unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
-            <div style='background-color: #F8FAFC; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;'>
-                <h3 style='color: #1A365D; margin-bottom: 15px;'>🎵 Music Therapy</h3>
-                <p style='color: #2D3748;'>Music therapy is a form of therapy that uses music to help people with mental health issues. It can be used to help people with depression, anxiety, and other mental health issues.</p>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-music"></i></div>
+                <h3>Musicoterapia</h3>
+                <p>La musicoterapia es una forma de terapia que utiliza la música para ayudar a las personas con problemas de salud mental. Puede ser utilizada para ayudar a personas con depresión, ansiedad y otros problemas de salud mental.</p>
             </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
-            <div style='background-color: #F8FAFC; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;'>
-                <h3 style='color: #1A365D; margin-bottom: 15px;'>💊 psychedelic therapy </h3>
-                <p style='color: #2D3748;'>Psychedelic therapy is a form of therapy that uses psychedelic drugs to help people with mental health issues. It can be used to help people with depression, anxiety, and other mental health issues.</p>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-pills"></i></div>
+                <h3>Terapia con Psicodélicos</h3>
+                <p>La terapia con psicodélicos es una forma de terapia que utiliza sustancias psicodélicas para ayudar a las personas con problemas de salud mental. Puede ser utilizada para ayudar a personas con depresión, ansiedad y otros problemas de salud mental.</p>
             </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
-            <div style='background-color: #F8FAFC; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;'>
-                <h3 style='color: #1A365D; margin-bottom: 15px;'>🤖 AI Therapy</h3>
-                <p style='color: #2D3748;'>AI therapy is a form of therapy that uses AI to help people with mental health issues. It can be used to help people with depression, anxiety, and other mental health issues.</p>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-robot"></i></div>
+                <h3>Terapia con IA</h3>
+                <p>La terapia con IA es una forma de terapia que utiliza inteligencia artificial para ayudar a las personas con problemas de salud mental. Puede ser utilizada para ayudar a personas con depresión, ansiedad y otros problemas de salud mental.</p>
             </div>
         """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Additional information
     st.markdown("""
         <div style='background-color: #F8FAFC; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-top: 20px;'>
-            <h2 style='color: #1A365D; margin-bottom: 15px;'>About Our Service</h2>
-            <p style='color: #2D3748;'>TerapIA is a platform that uses AI to help people with mental health issues. It can be used to help people with depression, anxiety, and other mental health issues.</p>
+            <h2 style='color: #1A365D; margin-bottom: 15px;'><i class="fas fa-info-circle icon"></i>Sobre Nuestro Servicio</h2>
+            <p style='color: #2D3748;'>TerapIA es una plataforma que utiliza IA para ayudar a las personas con problemas de salud mental. Puede ser utilizada para ayudar a personas con depresión, ansiedad y otros problemas de salud mental.</p>
         </div>
     """, unsafe_allow_html=True)
 
 def main():
     # Initialize session state for page navigation
     if 'current_page' not in st.session_state:
-        st.session_state.current_page = 'Home'
+        st.session_state.current_page = 'Inicio'
     
     # Create pages dictionary
     pages = {
-        "Home": homepage,
-        "Therapist": therapist_interface,
-        "Patient": patient_interface
+        "Inicio": homepage,
+        "Terapeuta": therapist_interface,
+        "Paciente": patient_interface
     }
     
     # Add custom CSS for the navigation bar
@@ -667,27 +721,27 @@ def main():
     col1, col2, col3 = st.columns([1, 1, 1])
     
     with col1:
-        if st.button("🏠 Home Dashboard", 
+        if st.button("Panel Principal", 
                     key="nav_home",
                     use_container_width=True,
-                    type="primary" if st.session_state.current_page == "Home" else "secondary"):
-            st.session_state.current_page = "Home"
+                    type="primary" if st.session_state.current_page == "Inicio" else "secondary"):
+            st.session_state.current_page = "Inicio"
             st.rerun()
     
     with col2:
-        if st.button("👨‍⚕️ Therapist Portal", 
+        if st.button("Portal del Terapeuta", 
                     key="nav_therapist",
                     use_container_width=True,
-                    type="primary" if st.session_state.current_page == "Therapist" else "secondary"):
-            st.session_state.current_page = "Therapist"
+                    type="primary" if st.session_state.current_page == "Terapeuta" else "secondary"):
+            st.session_state.current_page = "Terapeuta"
             st.rerun()
     
     with col3:
-        if st.button("👤 Patient Portal", 
+        if st.button("Portal del Paciente", 
                     key="nav_patient",
                     use_container_width=True,
-                    type="primary" if st.session_state.current_page == "Patient" else "secondary"):
-            st.session_state.current_page = "Patient"
+                    type="primary" if st.session_state.current_page == "Paciente" else "secondary"):
+            st.session_state.current_page = "Paciente"
             st.rerun()
     
     st.markdown('</div>', unsafe_allow_html=True)
