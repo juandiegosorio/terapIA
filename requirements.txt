@@ -3,3 +3,4 @@ python-dotenv==1.0.0
 scipy==1.15.2
 pydub==0.25.1
 torch==2.6.0
+openai-whisper==20240930
