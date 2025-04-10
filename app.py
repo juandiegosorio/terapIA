@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_navigation_bar import st_navbar
 # Must be the first Streamlit command
 st.set_page_config(
     page_title="Therapy Session Manager",
