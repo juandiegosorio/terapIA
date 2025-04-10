@@ -334,7 +334,7 @@ def load_patient_sessions(patient_id):
         if session_dir.is_dir():
             session_data = {}
             metadata_file = session_dir / "metadata.txt"
-            with open(metadata_file, "r") as f:
+            with open(metadata_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
                 session_data["date"] = lines[0].replace("Date: ", "").strip()
                 session_data["notes"] = lines[1].replace("Notes: ", "").strip()
